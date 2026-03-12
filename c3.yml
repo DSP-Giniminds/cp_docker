@@ -21,7 +21,7 @@ services:
     volumes:
       - ./vol/config:/mnt/config
     ports:
-      - "19093:19093"
+      - "19093:9093"
     environment:
       CONFIG_PATH: "/mnt/config"
       SHOULD_LOG_TO_FILE: false
@@ -57,7 +57,7 @@ services:
       CONTROL_CENTER_PROMETHEUS_URL: http://prometheus:9090
       CONTROL_CENTER_PROMETHEUS_RULES_FILE: /mnt/config/trigger_rules-generated.yml
 
-      CONTROL_CENTER_ALERTMANAGER_URL: http://alertmanager:19093
+      CONTROL_CENTER_ALERTMANAGER_URL: http://alertmanager:9093
       CONTROL_CENTER_ALERTMANAGER_CONFIG_FILE: /mnt/config/alertmanager-generated.yml
 
       PORT: 9021
