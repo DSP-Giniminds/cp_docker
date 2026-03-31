@@ -158,5 +158,6 @@ docker exec -it broker-1 kafka-topics --bootstrap-server broker-1:29092 --list
 * Ensure Docker and Docker Compose are installed.
 * Kafka Connect plugins must be placed inside the `plugins` directory before restarting the Connect container.
 * Control Center and monitoring services rely on the Kafka cluster defined in `cp.yml`.
+* Add bridge network to expose.
 
 ---
