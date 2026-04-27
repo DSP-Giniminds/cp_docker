@@ -1,0 +1,59 @@
+pipeline {
+    agent any
+
+    environment {
+        NETWORK = 'giniminds-bridge'
+    }
+
+    stages {
+
+        stage('Debug') {
+            steps {
+                sh '''
+                echo "===== WORKSPACE ====="
+                pwd
+                ls -la
+                '''
+            }
+        }
+
+        stage('Destroy Stack') {
+            steps {
+                sh '''
+                echo "===== STOPPING & REMOVING STACK ====="
+                docker compose -f cp.yml down -v || true
+                docker compose -f c3.yml down -v || true
+                '''
+            }
+        }
+
+        stage('Remove Network') {
+            steps {
+                sh '''
+                echo "===== REMOVING NETWORK ====="
+                docker network rm ${NETWORK} || true
+                '''
+            }
+        }
+
+        stage('Final Check') {
+            steps {
+                sh '''
+                echo "===== VERIFY CLEANUP ====="
+                docker ps
+                docker volume ls
+                docker network ls
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Stack destroyed completely'
+        }
+        failure {
+            echo '❌ Cleanup failed — check logs'
+        }
+    }
+}
