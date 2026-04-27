@@ -23,7 +23,7 @@ pipeline {
             }
         }
 
-        // ❗ Remove if using "Pipeline script from SCM"
+        // Remove this stage if using "Pipeline script from SCM"
         stage('Clone (SCM)') {
             steps {
                 checkout scm
@@ -34,8 +34,8 @@ pipeline {
             steps {
                 sh '''
                 echo "===== CHECK YAML FILES ====="
-                ls -l cp.yml || echo "❌ cp.yml NOT FOUND"
-                ls -l c3.yml || echo "❌ c3.yml NOT FOUND"
+                ls -l cp.yml || { echo "❌ cp.yml NOT FOUND"; exit 1; }
+                ls -l c3.yml || { echo "❌ c3.yml NOT FOUND"; exit 1; }
                 '''
             }
         }
@@ -44,9 +44,9 @@ pipeline {
             steps {
                 sh '''
                 echo "===== DOCKER CHECK ====="
-                docker --version || echo "❌ Docker not installed"
-                docker compose version || echo "❌ Docker Compose missing"
-                docker ps || echo "❌ Docker permission issue"
+                docker --version
+                docker compose version
+                docker ps
                 '''
             }
         }
@@ -66,9 +66,20 @@ pipeline {
         stage('Clean Previous Run') {
             steps {
                 sh '''
-                echo "===== CLEANUP (SAFE) ====="
+                echo "===== CLEANUP ====="
+
+                # 1. Clean correct project (new runs)
                 docker compose -p ${PROJECT} -f cp.yml down || true
                 docker compose -p ${PROJECT} -f c3.yml down || true
+
+                # 2. Fallback cleanup (old runs without project name)
+                echo "===== FALLBACK CLEANUP ====="
+                docker ps -a --filter "name=broker" -q | xargs -r docker rm -f
+                docker ps -a --filter "name=control-center" -q | xargs -r docker rm -f
+                docker ps -a --filter "name=schema-registry" -q | xargs -r docker rm -f
+                docker ps -a --filter "name=connect" -q | xargs -r docker rm -f
+                docker ps -a --filter "name=prometheus" -q | xargs -r docker rm -f
+                docker ps -a --filter "name=alertmanager" -q | xargs -r docker rm -f
                 '''
             }
         }
@@ -118,7 +129,7 @@ pipeline {
             echo '✅ Stack deployed successfully'
         }
         failure {
-            echo '❌ Deployment failed — check logs above (look for first error)'
+            echo '❌ Deployment failed — check logs above (first error is key)'
         }
     }
 }
