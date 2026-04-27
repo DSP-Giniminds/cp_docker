@@ -7,6 +7,8 @@ services:
       - ./vol/config:/mnt/config
     ports:
       - "9090:9090"
+    networks:
+      - giniminds-bridge
     environment:
       CONFIG_PATH: "/mnt/config"
       SHOULD_LOG_TO_FILE: false
@@ -22,6 +24,8 @@ services:
       - ./vol/config:/mnt/config
     ports:
       - "19093:9093"
+    networks:
+      - giniminds-bridge
     environment:
       CONFIG_PATH: "/mnt/config"
       SHOULD_LOG_TO_FILE: false
@@ -36,6 +40,8 @@ services:
       - alertmanager
     ports:
       - "9021:9021"
+    networks:
+      - giniminds-bridge
     volumes:
       - ./vol/config:/mnt/config
     environment:
@@ -61,3 +67,7 @@ services:
       CONTROL_CENTER_ALERTMANAGER_CONFIG_FILE: /mnt/config/alertmanager-generated.yml
 
       PORT: 9021
+
+networks:
+  giniminds-bridge:
+    external: true
