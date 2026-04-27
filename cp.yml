@@ -4,6 +4,8 @@ services:
     image: confluentinc/cp-server:8.0.0
     hostname: broker-1
     container_name: broker-1
+    networks:
+      - giniminds-bridge
     ports:
       - "9092:9092"
     environment:
@@ -44,6 +46,8 @@ services:
     image: confluentinc/cp-server:8.0.0
     hostname: broker-2
     container_name: broker-2
+    networks:
+      - giniminds-bridge
     ports:
       - "9093:9092"
     environment:
@@ -83,6 +87,8 @@ services:
     image: confluentinc/cp-server:8.0.0
     hostname: broker-3
     container_name: broker-3
+    networks:
+      - giniminds-bridge
     ports:
       - "9094:9092"
     environment:
@@ -125,6 +131,8 @@ services:
       - broker-1
       - broker-2
       - broker-3
+    networks:
+      - giniminds-bridge
     ports:
       - "8081:8081"
     environment:
@@ -144,6 +152,8 @@ services:
       - schema-registry
     ports:
       - "8083:8083"
+    networks:
+      - giniminds-bridge
     volumes:
       - ./plugins:/etc/kafka-connect/jars
 
@@ -175,3 +185,6 @@ services:
 
       CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components,/etc/kafka-connect/jars"
 
+networks:
+  giniminds-bridge:
+    external: true
