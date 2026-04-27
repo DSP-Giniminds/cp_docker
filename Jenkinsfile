@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         NETWORK = 'giniminds-bridge'
+        PROJECT = 'cp-8'
     }
 
     stages {
@@ -22,9 +23,9 @@ pipeline {
             }
         }
 
+        // ❗ Remove if using "Pipeline script from SCM"
         stage('Clone (SCM)') {
             steps {
-                // Only needed if not using "Pipeline script from SCM"
                 checkout scm
             }
         }
@@ -65,9 +66,9 @@ pipeline {
         stage('Clean Previous Run') {
             steps {
                 sh '''
-                echo "===== CLEANUP ====="
-                docker compose -f cp.yml down -v || true
-                docker compose -f c3.yml down -v || true
+                echo "===== CLEANUP (SAFE) ====="
+                docker compose -p ${PROJECT} -f cp.yml down || true
+                docker compose -p ${PROJECT} -f c3.yml down || true
                 '''
             }
         }
@@ -76,7 +77,7 @@ pipeline {
             steps {
                 sh '''
                 echo "===== STARTING CP STACK ====="
-                docker compose -f cp.yml up -d
+                docker compose -p ${PROJECT} -f cp.yml up -d
                 '''
             }
         }
@@ -85,7 +86,7 @@ pipeline {
             steps {
                 sh '''
                 echo "===== STARTING C3 STACK ====="
-                docker compose -f c3.yml up -d
+                docker compose -p ${PROJECT} -f c3.yml up -d
                 '''
             }
         }
@@ -101,6 +102,9 @@ pipeline {
                 sh '''
                 echo "===== RUNNING CONTAINERS ====="
                 docker ps
+
+                echo "===== COMPOSE PROJECTS ====="
+                docker compose ls
 
                 echo "===== NETWORK DETAILS ====="
                 docker network inspect ${NETWORK} || true
