@@ -3,9 +3,24 @@ pipeline {
 
     environment {
         NETWORK = 'giniminds-bridge'
+        PROJECT = 'cp-8'
+    }
+
+    parameters {
+        string(name: 'CONFIRM', defaultValue: '', description: 'Type DESTROY to confirm full cleanup')
     }
 
     stages {
+
+        stage('Safety Check') {
+            steps {
+                script {
+                    if (params.CONFIRM != "DESTROY") {
+                        error("❌ Confirmation failed. Type DESTROY to proceed with cleanup.")
+                    }
+                }
+            }
+        }
 
         stage('Debug') {
             steps {
@@ -13,16 +28,20 @@ pipeline {
                 echo "===== WORKSPACE ====="
                 pwd
                 ls -la
+
+                echo "===== ACTIVE COMPOSE PROJECTS ====="
+                docker compose ls || true
                 '''
             }
         }
 
-        stage('Destroy Stack') {
+        stage('Stop and Remove Stack') {
             steps {
                 sh '''
-                echo "===== STOPPING & REMOVING STACK ====="
-                docker compose -f cp.yml down -v || true
-                docker compose -f c3.yml down -v || true
+                echo "===== DESTROYING STACK ====="
+
+                docker compose -p ${PROJECT} -f cp.yml down -v || true
+                docker compose -p ${PROJECT} -f c3.yml down -v || true
                 '''
             }
         }
@@ -36,13 +55,22 @@ pipeline {
             }
         }
 
-        stage('Final Check') {
+        stage('Verification') {
             steps {
                 sh '''
                 echo "===== VERIFY CLEANUP ====="
+
+                echo "--- Containers ---"
                 docker ps
-                docker volume ls
+
+                echo "--- Compose Projects ---"
+                docker compose ls
+
+                echo "--- Networks ---"
                 docker network ls
+
+                echo "--- Volumes ---"
+                docker volume ls
                 '''
             }
         }
@@ -50,10 +78,10 @@ pipeline {
 
     post {
         success {
-            echo '✅ Stack destroyed completely'
+            echo '✅ Stack destroyed successfully'
         }
         failure {
-            echo '❌ Cleanup failed — check logs'
+            echo '❌ Destroy failed — check logs'
         }
     }
 }
